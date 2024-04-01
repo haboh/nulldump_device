@@ -24,7 +24,9 @@ static ssize_t nulldump_write(struct file *file, const char __user *buf, size_t 
     size_t written = 0;
     ssize_t res;
 
-    pr_info("nulldump write: ");
+    pr_info("nulldump write start.\n");
+    pr_info("pid: %u, command: %s\n", current->pid, current->comm);
+
     while (written < len) {
         current_read = (len - written >= BUFFER_SIZE ? BUFFER_SIZE : len - written);
         written += current_read;
@@ -32,14 +34,16 @@ static ssize_t nulldump_write(struct file *file, const char __user *buf, size_t 
             res = -EFAULT;
             goto finish;
         }
-        pr_info("%s", buffer);
+        for (size_t i = 0; i < current_read; ++i) {
+            pr_cont("%02x", buffer[i]);
+        }
         buf += current_read;
     }
 
     res = written;
 
 finish:
-    pr_info("Write finished. Written: %lu bytes.\n", written);
+    pr_info("nulldump write finished. Written: %lu bytes.\n", written);
 
     return res;
 }
